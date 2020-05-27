@@ -22,14 +22,18 @@ module Ls
 
     def generate_with_argv_files
       file_details = (sort_and_reverse(argv_files).map { |file| FileData.new(file) })
-      @option[:list] ? view(file_details) : _last_view(file_details)
+      if @option[:list]
+        list_view(file_details).last(file_details.length)
+      else
+        name_view(file_details)
+      end
     end
 
     def generate_with_directory(directory)
       Dir.chdir(directory) do
         name_list = @option[:all] ? Dir.glob('*', File::FNM_DOTMATCH) : Dir.glob('*')
         file_details = sort_and_reverse(name_list).map { |file| FileData.new(file) }
-        @option[:list] ? view(file_details) : _last_view(file_details)
+        @option[:list] ? list_view(file_details) : name_view(file_details)
       end
     end
 
@@ -43,7 +47,7 @@ module Ls
       views
     end
 
-    def view(file_details)
+    def list_view(file_details)
       array = ["total #{file_details.map(&:blocks).sum}"]
       array << file_details.map do |f|
         "#{f.ftype}#{f.mode}  "\
@@ -55,12 +59,12 @@ module Ls
       array
     end
 
-    def _last_view(file_details)
-      columns_width = calc_columns_width(file_details)
-      number_of_rows = calc_number_of_rows(file_details)
+    def name_view(file_details)
+      columns_width = columns_width(file_details)
+      number_of_rows = number_of_rows(file_details)
       formatted_list = file_details.map { |f| f.file.ljust(columns_width) }
       sliced_list = formatted_list.each_slice(number_of_rows).to_a
-      sliced_list.last.concat( [''] * (number_of_rows - sliced_list.last.size))
+      sliced_list.last << '' while sliced_list.last.size < number_of_rows
       sliced_list.transpose.map(&:join)
     end
 
@@ -68,13 +72,13 @@ module Ls
       IO.console_size[1]
     end
 
-    def calc_columns_width(file_details)
+    def columns_width(file_details)
       max_file_length = file_details.map { |f| f.file.length }.max
       ((max_file_length + 1) / 8.0).ceil * 8
     end
 
-    def calc_number_of_rows(file_details)
-      number_of_columns = console_width / calc_columns_width(file_details)
+    def number_of_rows(file_details)
+      number_of_columns = console_width / columns_width(file_details)
       (file_details.size / number_of_columns.to_f).ceil
     end
 
