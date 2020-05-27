@@ -32,20 +32,20 @@ module Ls
     end
 
     def format_max_nlink_digit(file_details, file_data)
-      max_nlink_digit = file_details.map(&:fill_nlink).max.to_s.length
-      file_data.fill_nlink.to_s.rjust(max_nlink_digit)
+      max_nlink_digit = file_details.map(&:nlink).max.to_s.length
+      file_data.nlink.to_s.rjust(max_nlink_digit)
     end
 
     def format_max_size_digit(file_details, file_data)
-      max_size_digit = file_details.map(&:fill_size).max.to_s.length
-      file_data.fill_size.to_s.rjust(max_size_digit)
+      max_size_digit = file_details.map(&:size).max.to_s.length
+      file_data.size.to_s.rjust(max_size_digit)
     end
 
-    def fill_ftype
+    def ftype
       FILE_TYPE[File.ftype(@file)]
     end
 
-    def fill_mode
+    def mode
       permission = File.lstat(@file).mode.to_s(8)[-3..-1]
       change_mode_style(permission).join
     end
@@ -56,27 +56,27 @@ module Ls
       end
     end
 
-    def fill_nlink
+    def nlink
       File.lstat(@file).nlink
     end
 
-    def fill_owner
+    def owner
       Etc.getpwuid(File.lstat(@file).uid).name
     end
 
-    def fill_group
+    def group
       Etc.getgrgid(File.lstat(@file).gid).name
     end
 
-    def fill_size
+    def size
       File.lstat(@file).size
     end
 
-    def fill_mtime
+    def mtime
       File.lstat(@file).mtime.strftime('%_m %_d %H:%M')
     end
 
-    def fill_blocks
+    def blocks
       File.lstat(@file).blocks.to_i
     end
   end
